@@ -1,0 +1,9 @@
+* {
+    overflow: hidden;
+    background-image: url(images/bg-universe.jpg);
+    background-position: center;
+    background-size: cover;
+}
+canvas {
+    border: 1px solid white;
+}

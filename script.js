@@ -9,7 +9,7 @@ let map = [
     [1, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 1],
     [1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1],
     [1, 2, 1, 1, 1, 2, 2, 2, 2, 2,  ,  ,  ,  ,  ,  ,  ,  , 2, 2, 2, 2, 2, 1, 1, 1, 2, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2,  ,  ,  ,  ,  ,  ,  ,  , 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 2, 2, 2, 2, 1, 1, 1, 2,  ,  ,  ,  ,  ,  ,  ,  , 2, 1, 1, 1, 2, 2, 2, 2, 2, 1],
     [1, 2, 1, 1, 1, 2, 2, 2, 2, 2,  ,  ,  ,  ,  ,  ,  ,  , 2, 2, 2, 2, 2, 1, 1, 1, 2, 1],
     [1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1],
     [1, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 1],
@@ -19,9 +19,11 @@ let map = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ];
 
-let apolo = new Image();
+const apolo = new Image();
 apolo.src = 'images/apolo.png';
-ctx.drawImage(apolo, 10, 10, 50, 50);
+
+let soundtrack = new Audio();
+soundtrack.src = 'soundtrack.mp3';
 
 let pause = false;
 let dir = 0;
@@ -31,18 +33,23 @@ let x = 255;
 let y = 255;
 
 canvas.width = map[0].length * 40;
-canvas.height = map.length * 40;   
+canvas.height = map.length * 40;  
+
+const grd = ctx.createLinearGradient(100, 10, 200, 0);
+grd.addColorStop(0, "#1c0453");
+grd.addColorStop(1, "#212137");
+
 
 //pintar mapa
 function drawMap() {
     for (let i = 0; i < map.length; i++) {
         for (let j = 0; j < map[i].length; j++) {
             if (map[i][j] === 1) {
-                ctx.strokeStyle = 'white';
-                ctx.strokeRect(j * 40, i * 40, 40, 40);
+                ctx.fillStyle = grd;
+                ctx.fillRect(j * 40, i * 40, 40, 40);
             } else if (map[i][j] === 2) {
                 ctx.beginPath();
-                ctx.arc(j * 40 + 20, i * 40 + 20, 2, 0, 2 * Math.PI);
+                ctx.arc(j * 40 + 20, i * 40 + 20, 7, 5, 2 * Math.PI);
                 ctx.fillStyle = 'white';
                 ctx.fill();
             } else if (map[i][j] === 0) {
@@ -55,10 +62,10 @@ function drawMap() {
 
 // DECLARACION DE CLASES
 //player
-class Cuadrado {
+class Player {
     constructor(x, y, w, h, color) {
-        this.x = x;
-        this.y = y;
+        this.x = 45;
+        this.y = 45;
         this.w = w;
         this.h = h;
         this.color = color;
@@ -70,7 +77,7 @@ class Cuadrado {
     }
 }
 
-const player = new Cuadrado(x, y, 30, 30, 'white');
+const player = new Player(x, y, 38, 38, 'white');
 
 // DECLARACION DE PERSONAJES
 //enemies
@@ -149,6 +156,8 @@ function update() {
 
         }
 
+        soundtrack.play();
+
     }
     paint();
     window.requestAnimationFrame(update);
@@ -164,19 +173,21 @@ function paint() {
     ctx.fillStyle = "white";
     ctx.fillText("Score: " + score, 20, 30);
 
-    player.paint(ctx);
+    ctx.drawImage(apolo, player.x, player.y, player.w, player.h);
 
 
     if (pause) {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-        ctx.fillRect(0, 0, 500, 500);
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(0, 0, 1200, 600);
 
-        ctx.font = "55px Arial Black";
-        ctx.fillStyle = "Crimson";
-        ctx.fillText("PAUSED", 135, 250);
+        ctx.font = "75px Arial Black";
+        ctx.fillStyle = "blue";
+        ctx.fillText("PAUSED", 395, 280);
         ctx.font = "20px Arial";
         ctx.fillStyle = "white";
-        ctx.fillText("Press [ SPACE ] to continue", 134, 300);
+        ctx.fillText("Press [ SPACE ] to continue", 435, 320);
+
+        soundtrack.pause();
     }
 }
 

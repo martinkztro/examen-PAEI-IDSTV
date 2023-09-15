@@ -3,6 +3,6 @@ html {
     background-color: black;
 }
 canvas {
-    border: 1px solid black;
+    border: 1px solid white;
     background-image: url("images/bg-universe.jpg");
 }

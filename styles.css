@@ -1,9 +1,8 @@
-body {
+html {
     overflow: hidden;
-    background-image: url("images/bg-universe.jpg");
-    background-position: center;
-    background-size: cover;
+    background-color: black;
 }
 canvas {
-    background-color: rgba(0, 0, 0, 0.6);
+    border: 1px solid black;
+    background-image: url("images/bg-universe.jpg");
 }

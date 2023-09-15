@@ -2,15 +2,16 @@ const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
 
 let dir = 0;
-let speed = 1;
+let speed = .4;
 let pause = false;
 let score = -5;
 let lives = 3;
 let wall = [];
 let food = [];
+let enemies = [];
 let map = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 3, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 3, 1],
     [1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 2,  ,  , 2, 2, 2, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1],
     [1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 2,  ,  , 2, 2, 2, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1],
     [1, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 1],
@@ -22,7 +23,7 @@ let map = [
     [1, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 1],
     [1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 2,  ,  , 2, 2, 2, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1],
     [1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 2,  ,  , 2, 2, 2, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ];
 let stopWall = true;
@@ -33,7 +34,7 @@ const pintarMapa = () => {
     for (let i = 0; i < map.length; i++) {
         for (let j = 0; j < map[0].length; j++) {
             if (map[i][j] === 1) {
-                wall.push(new Game(j * 40, i * 40, 39, 39, 'gray'));
+                wall.push(new Game(j * 40, i * 40, 39, 39, 'rgba(0, 140, 255, 0.3)'));
             }
         }
     }
@@ -43,7 +44,17 @@ const pintarComida = () => {
     for (let i = 0; i < map.length; i++) {
         for (let j = 0; j < map[0].length; j++) {
             if (map[i][j] === 2) {
-                food.push(new Game(j * 40 + 18, i * 40 + 18, 5, 5, 'white'));
+                food.push(new Game(j * 40 + 18, i * 40 + 18, 7, 7, 'white'));
+            }
+        }
+    }
+}
+
+const pintarEnemigos = () => {
+    for (let i = 0; i < map.length; i++) {
+        for (let j = 0; j < map[0].length; j++) {
+            if (map[i][j] === 3) {
+                enemies.push(new Game(j * 40 + 18, i * 40 + 18, 10, 10, 'orange'));
             }
         }
     }
@@ -55,28 +66,30 @@ canvas.height = map.length * 40;
  // Carga de elementos (imagenes)
   const apolo = new Image();
   apolo.src = 'images/apolo.png';
-  apolo.onload = () => {
-      update();
-  };
+  apolo.onload = () => update();
+  
  
   const blackhole = new Image();
   blackhole.src = 'images/black-hole.png';
-  blackhole.onload = () => {
-      update();
-  };
+  blackhole.onload = () => update();
+  
 
   const wormhole = new Image();
   wormhole.src = 'images/worm-hole.png';
-  wormhole.onload = () => {
-      update();
-  };
+  wormhole.onload = () => update();
+  
 
   const asteroidImg = new Image();
   asteroidImg.src = "images/asteroid.png";
-  asteroidImg.onload = () => {
-    update();
-  };
+  asteroidImg.onload = () => update();
+  
 
+  const ufo = new Image();
+  ufo.src = "images/ufo.png";
+  ufo.onload = () => update();
+    
+
+  // Carga de sonidos
   const soundtrack = new Audio();
   soundtrack.src = 'soundtrack.mp3';
 
@@ -86,8 +99,12 @@ canvas.height = map.length * 40;
   const foodSoundtrack = new Audio();
   foodSoundtrack.src = 'food_soundtrack.mp3';
 
+  const failSoundtrack = new Audio();
+  failSoundtrack.src = 'fail_soundtrack.mp3';
 
-//gradient fire
+
+
+//gradiente fuego
 const gradient = ctx.createLinearGradient(0, 0, 0, 380);
 gradient.addColorStop(0, "rgba(255, 0, 0, 0.8)");
 gradient.addColorStop(.8, "rgba(255, 255, 0, 0.8)");
@@ -131,19 +148,15 @@ class Game {
     const asteroid = new Game(10, 90, 55, 55, gradient);
     const asteroid2 = new Game(600, 120, 55, 55, gradient);
 
-    const timer = () => {
-        if (!pause) {
+    //timer 
+    setInterval(() => {
+        if (!pause && !gameOver) {
             time += 1;
         }
-        if (gameOver){
-            
-
-        }
-    } 
-    setInterval(timer, 1000);
-
+    }, 1000);
+    
     const moveAsteroid = () => {
-        if (!pause) {
+        if (!pause && !gameOver) {
             asteroid.x += .8;
             asteroid.y += .8;
 
@@ -156,6 +169,23 @@ class Game {
 
             asteroid2.x = 600;
             asteroid2.y = 0;
+        }
+    }
+
+    const moveEnemies = () => {
+        for (let i = 0; i < enemies.length; i++) {
+            if (enemies[i].x < player.x) {
+                enemies[i].x += .08;
+            }
+            if (enemies[i].x > player.x) {
+                enemies[i].x -= .08;
+            }
+            if (enemies[i].y < player.y) {
+                enemies[i].y += .08;
+            }
+            if (enemies[i].y > player.y) {
+                enemies[i].y -= .08;
+            }
         }
     }
 
@@ -173,6 +203,7 @@ class Game {
         if (stopWall){
             pintarMapa();
             pintarComida();
+            pintarEnemigos();
             stopWall = false;
         }
 
@@ -191,17 +222,22 @@ class Game {
         asteroid2.paint(ctx);
         ctx.drawImage(asteroidImg, asteroid2.x, asteroid2.y, 75, 75);
 
-        ctx.font = "20px Arial Black";
+        for (let i = 0; i < enemies.length; i++) {
+            ctx.drawImage(ufo, enemies[i].x, enemies[i].y, 70, 70);
+        }
+
+
+        ctx.font = "30px Arial Black";
         ctx.fillStyle = "white";
         ctx.fillText("SCORE: " + score, 20, 30);
     
-        ctx.font = "20px Arial Black";
+        ctx.font = "30px Arial Black";
         ctx.fillStyle = "white";
-        ctx.fillText("LIVES: " + lives, 515, 30);
+        ctx.fillText("LIVES: " + lives, 495, 30);
     
-        ctx.font = "20px Arial Black";
+        ctx.font = "30px Arial Black";
         ctx.fillStyle = "white";
-        ctx.fillText("TIME: " + time, 1000, 30);
+        ctx.fillText("TIME: " + time, 950, 30);
         
         if (pause) {
             ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
@@ -215,18 +251,18 @@ class Game {
         }
 
         if (gameOver) {
-            ctx.fillStyle = "black";
+            ctx.fillStyle = "rgba(0, 0, 0, 0.95)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.font = "75px Arial Black";
             ctx.fillStyle = "white";
-            ctx.fillText("GAME OVER", 330, 280);
+            ctx.fillText("GAME OVER", 300, 280);
             ctx.font = "25px Arial Black";
-            ctx.fillText("SCORE: " + score, 420, 350);
+            ctx.fillText("SCORE: " + score, 300, 380);
             ctx.font = "25px Arial Black";
-            ctx.fillText("TIME: " + time, 430, 420);
+            ctx.fillText("TIME: " + time + " s", 700, 380);
             ctx.font = "20px Arial";
             ctx.fillStyle = "white";
-            ctx.fillText("Press [ R ] to restart", 435, 320);
+            ctx.fillText("Press [ R ] to restart", 470, 330);
             gameOver = true;
         }
 
@@ -260,7 +296,7 @@ class Game {
     })
 
     const update = () => {
-        if (!pause) {
+        if (!pause && !gameOver) {
             if (dir === 1) {
                 player.y -= speed;
             }
@@ -273,6 +309,9 @@ class Game {
             if (dir === 4) {
                 player.x -= speed;
             }
+
+            moveEnemies();
+
         }
 
         for (let i = 0; i < wall.length; i++) {
@@ -298,6 +337,22 @@ class Game {
                 score += 5;
                 foodSoundtrack.play();
                 foodSoundtrack.currentTime = 0;
+            }
+        }
+
+        for (let i = 0; i < enemies.length; i++) {
+            if (player.colision(enemies[i])) {
+                lives -= 1;
+                player.x = 45;
+                player.y = 45;
+                dir = 0;
+                failSoundtrack.play();
+                if (lives <= 0) {
+                    speed = 0;
+                    soundtrack.volume = 0.1;
+                    finalSoundtrack.play();
+                    gameOver = true;
+                }
             }
         }
 
@@ -347,10 +402,11 @@ class Game {
             player.x = 45;
             player.y = 45;
             dir = 0;
+            failSoundtrack.play();
             if (lives <= 0) { 0
                 speed = 0;
                 soundtrack.volume = 0.1;
-                finalSoundtrack.play();
+                failSoundtrack.play();
                 gameOver = true;
             }
         }

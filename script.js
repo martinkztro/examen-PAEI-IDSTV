@@ -11,7 +11,7 @@ let food = [];
 let enemies = [];
 let map = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 3, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 3, 1],
+    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 3, 1],
     [1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 2,  ,  , 2, 2, 2, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1],
     [1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 2,  ,  , 2, 2, 2, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1],
     [1, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 1],
@@ -29,6 +29,7 @@ let map = [
 let stopWall = true;
 let gameOver = false;
 let time = 0;
+let areYouWin = false;
 
 const pintarMapa = () => {
     for (let i = 0; i < map.length; i++) {
@@ -226,6 +227,12 @@ class Game {
             ctx.drawImage(ufo, enemies[i].x, enemies[i].y, 70, 70);
         }
 
+        facts = [
+            "+ Los Agujeros de Gusano son un tipo de puente que conecta dos puntos en el espacio-tiempo.",
+            "+ Apolo 11 fue la primera misión tripulada que llegó a la Luna, justo la nave que usaste ;)",
+            "+ Un Agujero Negro puede destruirte al entrar en él o su órbita."
+        ]
+
 
         ctx.font = "30px Arial Black";
         ctx.fillStyle = "white";
@@ -237,36 +244,61 @@ class Game {
     
         ctx.font = "30px Arial Black";
         ctx.fillStyle = "white";
-        ctx.fillText("TIME: " + time, 950, 30);
+        ctx.fillText("TIME: " + time, 935, 30);
         
         if (pause) {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+            ctx.fillStyle = "rgba(0, 0, 15, 0.90)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.font = "75px Arial Black";
-            ctx.fillStyle = "white";
-            ctx.fillText("PAUSED", 395, 280);
-            ctx.font = "20px Arial";
-            ctx.fillStyle = "white";
-            ctx.fillText("Press [ SPACE ] to continue", 435, 320);
+            ctx.font = "80px Arial Black";
+            ctx.fillStyle = gradient;
+            ctx.fillText("PAUSA", 400, 280);
+            ctx.font = "25px Arial";
+            ctx.fillStyle = "orange";
+            ctx.fillText("Pulsa [ SPACE ] para reanudar", 370, 330);
+        }
+
+        if(areYouWin) {
+            ctx.fillStyle = "rgba(0, 0, 15, 0.90)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = "80px Arial Black";
+            ctx.fillStyle = gradient;
+            ctx.fillText("¡GANASTE!", 307, 280);
+            ctx.font = "25px Arial";
+            ctx.fillStyle = "orange";
+            ctx.fillText("Pulsa [ R ] para reiniciar", 415, 330);
         }
 
         if (gameOver) {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.95)";
+            ctx.fillStyle = "rgba(0, 0, 15, 0.97)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.font = "75px Arial Black";
-            ctx.fillStyle = "white";
+            ctx.textAlign = "left";
+            ctx.fillStyle = gradient;
+            ctx.fillStroke = "white";   
             ctx.fillText("GAME OVER", 300, 280);
+            ctx.fill();
+            ctx.fillStyle = gradient;
             ctx.font = "25px Arial Black";
-            ctx.fillText("SCORE: " + score, 300, 380);
+            ctx.fillText("SCORE: " + score, 280, 380);
             ctx.font = "25px Arial Black";
             ctx.fillText("TIME: " + time + " s", 700, 380);
             ctx.font = "20px Arial";
+            ctx.fillStyle = "orange";
+            ctx.fillText("Pulsa [ R ] para reiniciar", 458, 330);
+
+            ctx.fillStyle = "orange";
+            ctx.font = "28px Arial Black";
+            ctx.fillText("¿Sabías qué?", 450, 470);
             ctx.fillStyle = "white";
-            ctx.fillText("Press [ R ] to restart", 470, 330);
+            ctx.font = "18px Arial";
+            ctx.textAlign = "center";
+            for (let i = 0; i < facts.length; i++) {
+                ctx.fillText(facts[i], 545, 515 + (i * 25));
+            }
+
+
             gameOver = true;
         }
-
-
 
     }
 
@@ -310,6 +342,21 @@ class Game {
                 player.x -= speed;
             }
 
+            for (let i = 0; i < enemies.length; i++) {
+            if (player.colision(enemies[i])) {
+                lives = lives - 1;
+                player.x = 45;
+                player.y = 45;
+                dir = 0;
+                failSoundtrack.play();
+                if (lives <= 0) {
+                    speed = 0;
+                    soundtrack.volume = 0.3;
+                    gameOver = true;
+                }
+            }
+        }
+
             moveEnemies();
 
         }
@@ -338,21 +385,12 @@ class Game {
                 foodSoundtrack.play();
                 foodSoundtrack.currentTime = 0;
             }
-        }
 
-        for (let i = 0; i < enemies.length; i++) {
-            if (player.colision(enemies[i])) {
-                lives -= 1;
-                player.x = 45;
-                player.y = 45;
-                dir = 0;
-                failSoundtrack.play();
-                if (lives <= 0) {
-                    speed = 0;
-                    soundtrack.volume = 0.1;
-                    finalSoundtrack.play();
-                    gameOver = true;
-                }
+            if (food.length === 0) {
+                areYouWin = true;
+                speed = 0;
+                soundtrack.volume = 0.3;
+                finalSoundtrack.play();
             }
         }
 
@@ -363,9 +401,10 @@ class Game {
             dir = 0;
             if (lives <= 0) {
                 speed = 0;
-                soundtrack.volume = 0.1;
-                finalSoundtrack.play();
+                soundtrack.volume = 0.3;
+                failSoundtrack.play();
                 gameOver = true;
+
             }
         }
 
@@ -405,7 +444,7 @@ class Game {
             failSoundtrack.play();
             if (lives <= 0) { 0
                 speed = 0;
-                soundtrack.volume = 0.1;
+                soundtrack.volume = 0.3;
                 failSoundtrack.play();
                 gameOver = true;
             }
